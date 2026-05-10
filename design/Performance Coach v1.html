@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Performance Coach — Design Prototype</title>
+<style>
+/* ── Tokens ── */
+:root {
+  --bg: #0f1117;
+  --card: #1a1d2b;
+  --card-hover: #222638;
+  --surface: #232738;
+  --border: #2a2e3e;
+  --text: #e8eaf0;
+  --text-secondary: #9095a8;
+  --text-muted: #5c6178;
+  --accent: #4f8fff;
+  --accent-dim: #2a4f8a;
+  --green: #34d399;
+  --green-bg: rgba(52,211,153,0.08);
+  --yellow: #fbbf24;
+  --yellow-bg: rgba(251,191,36,0.08);
+  --orange: #fb923c;
+  --orange-bg: rgba(251,146,60,0.08);
+  --red: #f87171;
+  --red-bg: rgba(248,113,113,0.08);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Inter', sans-serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', monospace;
+  --density: 0;
+  --accent-hue: 217;
+  --accent-sat: 100%;
+  --accent-light: 63%;
+}
+[data-density="compact"] {
+  --density: -1;
+}
+[data-density="spacious"] {
+  --density: 1;
+}
+[data-accent="green"] {
+  --accent: #34d399;
+}
+[data-accent="orange"] {
+  --accent: #fb923c;
+}
+[data-rating="pill"] .btn-rating {
+  border-radius: 999px;
+  min-width: 40px;
+}
+[data-rating="square"] .btn-rating {
+  border-radius: 8px;
+}
+/* ── Reset ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.5;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* ── Layout ── */
+.container{max-width:480px;margin:0 auto;padding:0 16px}
+.section{margin-bottom:24px}
+.section-header{
+  display:flex;justify-content:space-between;align-items:baseline;
+  margin-bottom:12px;padding-top:calc(16px + var(--density) * 8px);
+}
+.section-title{
+  font-size:13px;font-weight:600;text-transform:uppercase;
+  letter-spacing:0.06em;color:var(--text-secondary);
+}
+.section-action{
+  font-size:13px;color:var(--accent);font-weight:500;cursor:pointer;
+}
+.section-action:hover{opacity:0.8}
+/* ── Status Bar ── */
+.status-bar{
+  padding:8px 0;display:flex;justify-content:center;gap:24px;
+  font-size:11px;font-weight:500;color:var(--text-muted);
+  border-bottom:1px solid var(--border);margin-bottom:8px;
+}
+.status-bar span{display:flex;align-items:center;gap:4px}
+.status-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+/* ── Athlete Card (Dashboard) ── */
+.athlete-row{
+  display:flex;align-items:center;gap:12px;
+  background:var(--card);border-radius:var(--radius-md);padding:14px 16px;
+  margin-bottom:8px;cursor:pointer;transition:background 0.15s;
+}
+.athlete-row:active{background:var(--card-hover)}
+.athlete-avatar{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;flex-shrink:0;
+}
+.athlete-info{flex:1;min-width:0}
+.athlete-name{font-size:15px;font-weight:600}
+.athlete-meta{font-size:12px;color:var(--text-secondary);margin-top:1px}
+.athlete-status{text-align:right;flex-shrink:0}
+.athlete-score{
+  font-size:20px;font-weight:700;line-height:1;
+}
+.athlete-label{
+  font-size:10px;text-transform:uppercase;letter-spacing:0.04em;
+  color:var(--text-muted);margin-top:2px;
+}
+/* ── Readiness Badge ── */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;
+}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-yellow{background:var(--yellow-bg);color:var(--yellow)}
+.badge-orange{background:var(--orange-bg);color:var(--orange)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+/* ── Metric Dots ── */
+.metrics-row{
+  display:flex;gap:6px;margin-top:8px;
+}
+.metric-dot{
+  width:8px;height:8px;border-radius:50%;display:inline-block;
+}
+/* ── Check-in Screen ── */
+.checkin-card{
+  background:var(--card);border-radius:var(--radius-lg);padding:20px;
+}
+.checkin-athlete{
+  display:flex;align-items:center;gap:10px;margin-bottom:16px;
+}
+.checkin-athlete-avatar{width:32px;height:32px;border-radius:50%}
+.checkin-athlete-name{font-size:15px;font-weight:600}
+.checkin-athlete-date{font-size:12px;color:var(--text-muted)}
+.rating-group{
+  margin-bottom:calc(16px + var(--density) * 4px);
+}
+.rating-label{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:14px;font-weight:500;margin-bottom:8px;
+}
+.rating-hint{font-size:12px;color:var(--text-secondary);font-weight:400}
+.rating-scale{
+  display:flex;gap:8px;
+}
+.btn-rating{
+  flex:1;aspect-ratio:1;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--surface);border:none;color:var(--text-secondary);
+  font-size:15px;font-weight:600;border-radius:var(--radius-sm);
+  cursor:pointer;transition:all 0.12s;min-height:48px;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-rating:active{transform:scale(0.94)}
+.btn-rating.selected{
+  background:var(--accent-dim);color:var(--accent);box-shadow:0 0 0 1px var(--accent);
+}
+.btn-rating.selected.pill-selected{background:var(--accent);color:#fff;box-shadow:none}
+.btn-rating.selected.energy{background:rgba(79,143,255,0.15);color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.btn-rating.selected.sleep{background:rgba(96,165,250,0.15);color:#60a5fa;box-shadow:0 0 0 1px #60a5fa}
+.btn-rating.selected.soreness{background:rgba(251,146,60,0.15);color:var(--orange);box-shadow:0 0 0 1px var(--orange)}
+.btn-rating.selected.motivation{background:rgba(52,211,153,0.15);color:var(--green);box-shadow:0 0 0 1px var(--green)}
+.checkin-submit{
+  width:100%;padding:14px;border:none;border-radius:var(--radius-md);
+  background:var(--accent);color:#fff;font-size:16px;font-weight:600;
+  cursor:pointer;margin-top:4px;transition:opacity 0.15s;
+}
+.checkin-submit:active{opacity:0.85}
+.checkin-submit:disabled{opacity:0.4;cursor:default}
+/* ── Session View ── */
+.session-card{
+  background:var(--card);border-radius:var(--radius-md);padding:16px;margin-bottom:8px;
+}
+.session-header{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;
+}
+.session-name{font-size:15px;font-weight:600}
+.session-date{font-size:12px;color:var(--text-muted)}
+.session-block{
+  padding:10px 12px;border-radius:var(--radius-sm);
+  margin-bottom:8px;font-size:13px;line-height:1.6;
+}
+.session-block.speed{background:rgba(79,143,255,0.06);border-left:3px solid var(--accent)}
+.session-block.strength{background:rgba(52,211,153,0.06);border-left:3px solid var(--green)}
+.session-block-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;color:var(--text-secondary)}
+.session-exercise{padding:2px 0}
+/* ── Weekly Summary ── */
+.weekly-header{
+  background:var(--card);border-radius:var(--radius-lg);padding:20px;
+  margin-bottom:12px;text-align:center;
+}
+.weekly-athlete{font-size:17px;font-weight:700;margin-bottom:2px}
+.weekly-dates{font-size:12px;color:var(--text-muted);margin-bottom:12px}
+.weekly-stats{
+  display:flex;justify-content:center;gap:24px;
+}
+.weekly-stat{
+  text-align:center;
+}
+.weekly-stat-value{font-size:22px;font-weight:700}
+.weekly-stat-label{font-size:11px;color:var(--text-muted);margin-top:1px}
+.weekly-day{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border-radius:var(--radius-sm);padding:10px 12px;
+  margin-bottom:4px;
+}
+.weekly-day-label{font-size:13px;font-weight:500;width:50px;flex-shrink:0}
+.weekly-day-dots{display:flex;gap:4px}
+.weekly-day-note{font-size:12px;color:var(--text-secondary);flex:1;text-align:right}
+.weekly-note{
+  background:var(--card);border-radius:var(--radius-md);padding:14px 16px;margin-top:12px;
+}
+.weekly-note-title{font-size:13px;font-weight:600;margin-bottom:6px}
+.weekly-note-text{font-size:13px;color:var(--text-secondary);line-height:1.6}
+/* ── Tabs ── */
+.tabs{
+  display:flex;gap:4px;background:var(--card);border-radius:var(--radius-md);
+  padding:4px;margin-bottom:16px;
+}
+.tab{
+  flex:1;padding:10px;text-align:center;border-radius:var(--radius-sm);
+  font-size:13px;font-weight:500;color:var(--text-secondary);
+  cursor:pointer;transition:all 0.15s;border:none;background:transparent;
+  -webkit-tap-highlight-color:transparent;
+}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+/* ── Tweaks ── */
+.tweaks-toggle{
+  position:fixed;bottom:20px;right:20px;z-index:100;
+  width:44px;height:44px;border-radius:50%;border:none;
+  background:var(--accent);color:#fff;font-size:18px;
+  cursor:pointer;box-shadow:0 2px 12px rgba(79,143,255,0.3);
+  display:flex;align-items:center;justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+}
+.tweaks-panel{
+  position:fixed;bottom:0;left:0;right:0;z-index:99;
+  background:var(--card);border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom));
+  transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);
+  max-height:60vh;overflow-y:auto;
+}
+.tweaks-panel.open{transform:translateY(0)}
+.tweaks-handle{
+  width:36px;height:4px;background:var(--border);border-radius:2px;
+  margin:0 auto 16px;
+}
+.tweaks-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-secondary);margin-bottom:8px}
+.tweaks-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tweak-btn{
+  padding:8px 16px;border-radius:999px;border:1px solid var(--border);
+  background:transparent;color:var(--text-secondary);font-size:13px;font-weight:500;
+  cursor:pointer;transition:all 0.12s;
+}
+.tweak-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(79,143,255,0.08)}
+/* ── Variant Switch ── */
+.variant-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;color:var(--text-muted);margin-bottom:12px;
+}
+.variant-badge span{
+  background:var(--surface);padding:2px 8px;border-radius:4px;font-weight:500;
+}
+</style>
+</head>
+<body>
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <span><span class="status-dot" style="background:var(--green)"></span> Ready</span>
+  <span>85° DFW</span>
+  <span>Wed, May 13</span>
+</div>
+
+<div class="container">
+  <div class="variant-badge">Layout: <span id="variantLabel">Inline</span></div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="dashboard">Dashboard</button>
+    <button class="tab" data-tab="checkin">Check-in</button>
+    <button class="tab" data-tab="session">Session</button>
+    <button class="tab" data-tab="weekly">Weekly</button>
+  </div>
+
+  <!-- ═══ DASHBOARD ═══ -->
+  <div class="tab-content" id="panel-dashboard">
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Today's Readiness</div>
+        <div class="section-action">View All</div>
+      </div>
+
+      <div class="athlete-row">
+        <div class="athlete-avatar" style="background:rgba(79,143,255,0.12);color:var(--accent)">T</div>
+        <div class="athlete-info">
+          <div class="athlete-name">Tristan</div>
+          <div class="athlete-meta">Midfielder · 16yo</div>
+          <div class="metrics-row">
+            <span class="metric-dot" style="background:var(--green)" title="Energy 5"></span>
+            <span class="metric-dot" style="background:var(--green)" title="Sleep 4"></span>
+            <span class="metric-dot" style="background:var(--yellow)" title="Soreness 3"></span>
+            <span class="metric-dot" style="background:var(--green)" title="Motivation 5"></span>
+          </div>
+        </div>
+        <div class="athlete-status">
+          <div class="athlete-score" style="color:var(--green)">4.8</div>
+          <div class="athlete-label">avg</div>
+        </div>
+      </div>
+
+      <div class="athlete-row">
+        <div class="athlete-avatar" style="background:rgba(251,146,60,0.12);color:var(--orange)">K</div>
+        <div class="athlete-info">
+          <div class="athlete-name">Kennedy</div>
+          <div class="athlete-meta">Forward · 15yo</div>
+          <div class="metrics-row">
+            <span class="metric-dot" style="background:var(--yellow)" title="Energy 3"></span>
+            <span class="metric-dot" style="background:var(--orange)" title="Sleep 2"></span>
+            <span class="metric-dot" style="background:var(--green)" title="Soreness 4"></span>
+            <span class="metric-dot" style="background:var(--yellow)" title="Motivation 3"></span>
+          </div>
+        </div>
+        <div class="athlete-status">
+          <div class="athlete-score" style="color:var(--yellow)">3.0</div>
+          <div class="athlete-label">avg</div>
+        </div>
+      </div>
+
+      <!-- Week trend mini -->
+      <div style="margin-top:16px">
+        <div class="section-header">
+          <div class="section-title">This Week</div>
+        </div>
+        <div class="athlete-row" style="padding:10px 16px">
+          <div style="flex:1;font-size:13px">Tristan</div>
+          <div style="display:flex;gap:4px">
+            <span class="metric-dot" style="background:var(--green)"></span>
+            <span class="metric-dot" style="background:var(--green)"></span>
+            <span class="metric-dot" style="background:var(--green)"></span>
+            <span class="metric-dot" style="background:var(--yellow)"></span>
+            <span class="metric-dot" style="background:var(--green)"></span>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);margin-left:8px">4.6</div>
+        </div>
+        <div class="athlete-row" style="padding:10px 16px">
+          <div style="flex:1;font-size:13px">Kennedy</div>
+          <div style="display:flex;gap:4px">
+            <span class="metric-dot" style="background:var(--orange)"></span>
+            <span class="metric-dot" style="background:var(--yellow)"></span>
+            <span class="metric-dot" style="background:var(--green)"></span>
+            <span class="metric-dot" style="background:var(--yellow)"></span>
+            <span class="metric-dot" style="background:var(--yellow)"></span>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);margin-left:8px">3.2</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CHECK-IN ═══ -->
+  <div class="tab-content" id="panel-checkin" style="display:none">
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Evening Check-in</div>
+      </div>
+      <div class="checkin-card" id="variantContainer">
+        <!-- Inline variant rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SESSION ═══ -->
+  <div class="tab-content" id="panel-session" style="display:none">
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Today's Plan</div>
+        <div class="section-action">May 13</div>
+      </div>
+
+      <div class="session-card">
+        <div class="session-header">
+          <div class="session-name">ATG Warm-up</div>
+          <span class="badge badge-green">Complete</span>
+        </div>
+        <div style="font-size:13px;color:var(--text-secondary);padding:4px 0">
+          10 min · Coach-led
+        </div>
+      </div>
+
+      <div class="session-card">
+        <div class="session-header">
+          <div class="session-name">Speed Block</div>
+          <span class="badge badge-yellow">Today</span>
+        </div>
+        <div class="session-block speed">
+          <div class="session-block-title">Linear Speed</div>
+          <div class="session-exercise">3x20m acceleration · rest 90s</div>
+          <div class="session-exercise">3x30m fly-in · rest 2min</div>
+        </div>
+        <div class="session-block speed">
+          <div class="session-block-title">Change of Direction</div>
+          <div class="session-exercise">4x pro-agility · rest 60s</div>
+        </div>
+      </div>
+
+      <div class="session-card">
+        <div class="session-header">
+          <div class="session-name">Strength Block</div>
+          <span class="badge badge-yellow">Today</span>
+        </div>
+        <div class="session-block strength">
+          <div class="session-block-title">Main Lift</div>
+          <div class="session-exercise">Front squat · 3x5 @ RPE 7</div>
+        </div>
+        <div class="session-block strength">
+          <div class="session-block-title">Accessory</div>
+          <div class="session-exercise">Bulgarian split squat · 3x8/side</div>
+          <div class="session-exercise">Nordic curl · 3x6</div>
+          <div class="session-exercise">Core circuit · 3 rounds</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ WEEKLY ═══ -->
+  <div class="tab-content" id="panel-weekly" style="display:none">
+    <div class="section">
+      <div class="weekly-header">
+        <div class="weekly-athlete" style="color:var(--accent)">Tristan</div>
+        <div class="weekly-dates">May 4–10, 2026</div>
+        <div class="weekly-stats">
+          <div class="weekly-stat">
+            <div class="weekly-stat-value" style="color:var(--green)">4.3</div>
+            <div class="weekly-stat-label">avg readiness</div>
+          </div>
+          <div class="weekly-stat">
+            <div class="weekly-stat-value" style="color:var(--green)">+0.2</div>
+            <div class="weekly-stat-label">vs last week</div>
+          </div>
+          <div class="weekly-stat">
+            <div class="weekly-stat-value">3/3</div>
+            <div class="weekly-stat-label">sessions</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="weekly-day">
+        <div class="weekly-day-label">Mon</div>
+        <div class="weekly-day-dots">
+          <span class="metric-dot" style="background:var(--green)"></span>
+          <span class="metric-dot" style="background:var(--green)"></span>
+          <span class="metric-dot" style="background:var(--yellow)"></span>
+          <span class="metric-dot" style="background:var(--green)"></span>
+        </div>
+        <div class="weekly-day-note">4.5 · Speed day</div>
+      </div>
+      <div class="weekly-day">
+        <div class="weekly-day-label">Wed</div>
+        <div class="weekly-day-dots">
+          <span class="metric-dot" style="background:var(--green)"></span>
+          <span class="metric-dot" style="background:var(--green)"></span>
+          <span class="metric-dot" style="background:var(--green)"></span>
+          <span class="metric-dot" style="background:var(--green)"></span>
+        </div>
+        <div class="weekly-day-note">4.8 · Strength day</div>
+      </div>
+      <div class="weekly-day">
+        <div class="weekly-day-label">Fri</div>
+        <div class="weekly-day-dots">
+          <span class="metric-dot" style="background:var(--green)"></span>
+          <span class="metric-dot" style="background:var(--yellow)"></span>
+          <span class="metric-dot" style="background:var(--yellow)"></span>
+          <span class="metric-dot" style="background:var(--green)"></span>
+        </div>
+        <div class="weekly-day-note">3.8 · Light soreness</div>
+      </div>
+
+      <div class="weekly-note">
+        <div class="weekly-note-title">Coach Note</div>
+        <div class="weekly-note-text">Solid week. Tristan's linear acceleration is improving — his 20m splits dropped another 0.1s. Soreness crept up Friday but he managed well. Focus next week: maintain sleep on school nights.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TWEAKS ═══ -->
+<button class="tweaks-toggle" id="tweaksToggle" aria-label="Design tweaks">✦</button>
+<div class="tweaks-panel" id="tweaksPanel">
+  <div class="tweaks-handle"></div>
+  <div class="tweaks-label">Layout Variant</div>
+  <div class="tweaks-row">
+    <button class="tweak-btn active" data-variant="inline">Inline</button>
+    <button class="tweak-btn" data-variant="vertical">Vertical</button>
+    <button class="tweak-btn" data-variant="emoji">Emoji</button>
+  </div>
+  <div class="tweaks-label">Density</div>
+  <div class="tweaks-row">
+    <button class="tweak-btn" data-density="compact">Compact</button>
+    <button class="tweak-btn active" data-density="default">Default</button>
+    <button class="tweak-btn" data-density="spacious">Spacious</button>
+  </div>
+  <div class="tweaks-label">Accent Color</div>
+  <div class="tweaks-row">
+    <button class="tweak-btn active" data-accent="blue">Blue</button>
+    <button class="tweak-btn" data-accent="green">Green</button>
+    <button class="tweak-btn" data-accent="orange">Orange</button>
+  </div>
+  <div class="tweaks-label">Rating Button Style</div>
+  <div class="tweaks-row">
+    <button class="tweak-btn active" data-rating="pill">Pill</button>
+    <button class="tweak-btn" data-rating="square">Square</button>
+  </div>
+</div>
+
+<script>
+// ── Tab switching ──
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(p => p.style.display = 'none');
+    document.getElementById('panel-' + tab.dataset.tab).style.display = 'block';
+  });
+});
+
+// ── Check-in variants (Inline vs Vertical vs Emoji) ──
+const RATING_GROUPS = [
+  { id:'energy', label:'Energy', hint:'How awake do you feel?', emoji:'⚡' },
+  { id:'sleep', label:'Sleep', hint:'How well did you sleep?', emoji:'🌙' },
+  { id:'soreness', label:'Soreness', hint:'How sore are you?', emoji:'🔥' },
+  { id:'motivation', label:'Motivation', hint:'How ready to train?', emoji:'💪' },
+];
+
+function renderInline() {
+  document.getElementById('variantLabel').textContent = 'Inline';
+  let html = `
+    <div class="checkin-athlete">
+      <div class="checkin-athlete-avatar" style="background:rgba(79,143,255,0.12);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">T</div>
+      <div>
+        <div class="checkin-athlete-name">Tristan</div>
+        <div class="checkin-athlete-date">Tonight · before bed</div>
+      </div>
+    </div>`;
+  RATING_GROUPS.forEach(r => {
+    html += `<div class="rating-group">
+      <div class="rating-label">
+        <span>${r.label}</span>
+        <span class="rating-hint">${r.hint}</span>
+      </div>
+      <div class="rating-scale" data-group="${r.id}">
+        ${[1,2,3,4,5].map(n =>
+          `<button class="btn-rating ${r.id}" data-group="${r.id}" data-val="${n}">${n}</button>`
+        ).join('')}
+      </div>
+    </div>`;
+  });
+  html += `<button class="checkin-submit" disabled>Submit Check-in</button>`;
+  document.getElementById('variantContainer').innerHTML = html;
+  wireRatings();
+}
+
+function renderVertical() {
+  document.getElementById('variantLabel').textContent = 'Vertical';
+  let html = `
+    <div class="checkin-athlete">
+      <div class="checkin-athlete-avatar" style="background:rgba(79,143,255,0.12);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">T</div>
+      <div>
+        <div class="checkin-athlete-name">Tristan</div>
+        <div class="checkin-athlete-date">Tonight · before bed</div>
+      </div>
+    </div>`;
+  RATING_GROUPS.forEach(r => {
+    html += `<div class="rating-group">
+      <div class="rating-label"><span>${r.label}</span></div>
+      <div class="rating-scale" style="flex-direction:column;gap:4px" data-group="${r.id}">
+        ${[1,2,3,4,5].map(n => {
+          const labels = ['Very Low','Low','Okay','Good','Great'];
+          return `<button class="btn-rating ${r.id}" data-group="${r.id}" data-val="${n}" style="aspect-ratio:auto;flex:none;justify-content:space-between;padding:10px 14px">
+            <span>${n}</span>
+            <span style="font-weight:400;font-size:12px">${labels[n-1]}</span>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>`;
+  });
+  html += `<button class="checkin-submit" disabled>Submit Check-in</button>`;
+  document.getElementById('variantContainer').innerHTML = html;
+  wireRatings();
+}
+
+function renderEmoji() {
+  document.getElementById('variantLabel').textContent = 'Emoji';
+  let html = `
+    <div class="checkin-athlete">
+      <div class="checkin-athlete-avatar" style="background:rgba(79,143,255,0.12);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">T</div>
+      <div>
+        <div class="checkin-athlete-name">Tristan</div>
+        <div class="checkin-athlete-date">Tonight · before bed</div>
+      </div>
+    </div>`;
+  const emojis = {
+    energy: ['😴','😐','🙂','⚡','🔥'],
+    sleep: ['💤','😪','😐','😊','🌙'],
+    soreness: ['😖','😣','😐','🙂','💪'],
+    motivation: ['😞','😐','🙂','💪','🚀'],
+  };
+  RATING_GROUPS.forEach(r => {
+    html += `<div class="rating-group">
+      <div class="rating-label">
+        <span>${r.emoji} ${r.label}</span>
+      </div>
+      <div class="rating-scale" data-group="${r.id}">
+        ${[1,2,3,4,5].map((n,i) =>
+          `<button class="btn-rating ${r.id}" data-group="${r.id}" data-val="${n}" style="font-size:22px">${emojis[r.id][i]}</button>`
+        ).join('')}
+      </div>
+    </div>`;
+  });
+  html += `<button class="checkin-submit" disabled>Submit Check-in</button>`;
+  document.getElementById('variantContainer').innerHTML = html;
+  wireRatings(true);
+}
+
+function wireRatings(isEmoji) {
+  document.querySelectorAll('.btn-rating').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const group = btn.dataset.group;
+      document.querySelectorAll(`.btn-rating[data-group="${group}"]`).forEach(b => {
+        b.classList.remove('selected','pill-selected','energy','sleep','soreness','motivation');
+      });
+      btn.classList.add('selected');
+      // Check if any group unselected
+      let allSelected = true;
+      document.querySelectorAll('.rating-scale').forEach(s => {
+        if (!s.querySelector('.selected')) allSelected = false;
+      });
+      document.querySelector('.checkin-submit').disabled = !allSelected;
+    });
+  });
+}
+
+// ── Variant switching ──
+document.querySelectorAll('[data-variant]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-variant]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const v = btn.dataset.variant;
+    if (v === 'inline') renderInline();
+    if (v === 'vertical') renderVertical();
+    if (v === 'emoji') renderEmoji();
+  });
+});
+
+// ── Density ──
+document.querySelectorAll('[data-density]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-density]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.documentElement.dataset.density = btn.dataset.density;
+  });
+});
+
+// ── Accent ──
+document.querySelectorAll('[data-accent]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-accent]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.documentElement.dataset.accent = btn.dataset.accent;
+  });
+});
+
+// ── Rating style ──
+document.querySelectorAll('[data-rating]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-rating]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.documentElement.dataset.rating = btn.dataset.rating;
+  });
+});
+
+// ── Tweaks panel ──
+document.getElementById('tweaksToggle').addEventListener('click', () => {
+  document.getElementById('tweaksPanel').classList.toggle('open');
+});
+document.getElementById('tweaksPanel').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('tweaksPanel')) {
+    document.getElementById('tweaksPanel').classList.remove('open');
+  }
+});
+
+// ── Init ──
+renderInline();
+</script>
+</body>
+</html>
