@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>This Week</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container" id="app"></div>
+<script>
+const params = new URLSearchParams(location.search);
+const id = params.get('id');
+async function load() {
+  const resp = await fetch('/api/week/' + id);
+  const data = await resp.json();
+  let html = `<div class="card"><h2>This Week</h2><p class="streak">🔥 ${data.streak}/7 check-ins</p>`;
+  if (data.readiness && data.readiness.length) {
+    html += '<h3>Readiness</h3><div class="week-grid">';
+    for (const r of data.readiness) {
+      html += `<div class="day-card ${r.readiness_category.toLowerCase()}"><span class="day">${r.date.slice(5)}</span><span class="day-score">${r.readiness_score}</span></div>`;
+    }
+    html += '</div>';
+  }
+  if (data.sessions && data.sessions.length) {
+    html += '<h3>Sessions</h3>';
+    for (const s of data.sessions) {
+      html += `<div class="session-row"><span>${s.date.slice(5)}</span><span>${s.session_name}</span>${s.rpe ? `<span class="rpe-badge">RPE ${s.rpe}</span>` : ''}</div>`;
+    }
+  }
+  html += `<div class="btn-row" style="margin-top:1.5rem"><a href="/checkin?id=${id}" class="btn-primary">Check-in</a><a href="/session?id=${id}" class="btn-secondary">Today</a></div></div>`;
+  document.getElementById('app').innerHTML = html;
+}
+load();
+</script>
+</body>
+</html>

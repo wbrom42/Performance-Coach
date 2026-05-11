@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Today's Session</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container" id="app"></div>
+<script>
+const params = new URLSearchParams(location.search);
+const athleteId = params.get('id');
+const token = athleteId === 'A01' ? 'alpha' : (athleteId === 'B02' ? 'bravo' : null);
+
+async function load() {
+  const [readyResp, sessionResp, fbResp] = await Promise.all([
+    fetch('/api/today/' + athleteId),
+    fetch('/api/session/today'),
+    fetch('/api/feedback/today/' + athleteId)
+  ]);
+  const readiness = await readyResp.json();
+  const session = await sessionResp.json();
+  const feedback = await fbResp.json();
+
+  let html = '';
+  if (readiness.checked_in) {
+    html += `<div class="readiness-banner ${readiness.category.toLowerCase()}"><strong>${readiness.category}</strong> &middot; ${readiness.score}/100</div>`;
+  }
+
+  if (session.has_session) {
+    html += `<div class="card"><h2>${session.name}</h2><p class="focus">${session.focus || ''}</p>`;
+    if (session.speed) html += `<div class="block speed-block"><h3>⚡ Speed</h3><p>${session.speed}</p></div>`;
+    if (session.strength) html += `<div class="block strength-block"><h3>🏋️ Strength</h3><p>${session.strength}</p></div>`;
+    if (session.durability) html += `<div class="block durability-block"><h3>🛡️ Durability</h3><p>${session.durability}</p></div>`;
+    html += `</div>`;
+  } else {
+    html += `<div class="card"><h2>No session today</h2><p>Recovery is part of the program.</p></div>`;
+  }
+
+  if (feedback.submitted) {
+    html += `<div class="card complete"><p>✅ Session logged (RPE: ${feedback.rpe})</p><a href="/week?id=${athleteId}" class="btn-secondary">This Week</a></div>`;
+  } else {
+    html += `<div class="card"><h3>Post-Session Feedback</h3><form id="fb-form">
+      <div class="rating-group"><label>How hard? (RPE 1-10)</label><div class="scale scale-10" id="scale-rpe">`;
+    for (let i=1;i<=10;i++) html += `<button type="button" class="btn-rating btn-rating-sm" data-val="${i}">${i}</button>`;
+    html += `</div><span class="scale-label"><small>Easy</small><small>Max</small></span></div>
+      <div class="form-group"><label>Best part?</label><input type="text" name="best_part" placeholder="e.g. Hit a PR"></div>
+      <div class="form-group"><label>Hardest part?</label><input type="text" name="hardest_part" placeholder="e.g. Last sprint"></div>
+      <div class="pain-group"><label>Any pain or tightness?</label>
+        <div class="yesno-row">
+          <label class="yesno-option"><input type="radio" name="pain_flag" value="0" checked><span>No</span></label>
+          <label class="yesno-option"><input type="radio" name="pain_flag" value="1"><span>Yes</span></label>
+        </div>
+        <div id="fb-pain-notes" style="display:none"><textarea name="pain_notes" placeholder="Where?" rows="2"></textarea></div>
+      </div>
+      <div class="rating-group"><label>Eat after training?</label>
+        <div class="yesno-row">
+          <label class="yesno-option"><input type="radio" name="nutrition_done" value="1" checked><span>✅ Yes</span></label>
+          <label class="yesno-option"><input type="radio" name="nutrition_done" value="0"><span>❌ No</span></label>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary btn-large" id="fb-submit" disabled>Submit</button>
+    </form></div>`;
+  }
+
+  document.getElementById('app').innerHTML = html;
+  setupFBRatings();
+  document.querySelectorAll('input[name="pain_flag"]').forEach(r => r.addEventListener('change', (e) => {
+    document.getElementById('fb-pain-notes').style.display = e.target.value === '1' ? 'block' : 'none';
+  }));
+  const fbForm = document.getElementById('fb-form');
+  if (fbForm) fbForm.addEventListener('submit', submitFB);
+}
+
+function setupFBRatings() {
+  document.querySelectorAll('#scale-rpe .btn-rating').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#scale-rpe .btn-rating').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('fb-submit').disabled = false;
+    });
+  });
+}
+
+async function submitFB(e) {
+  e.preventDefault();
+  const form = new FormData(document.getElementById('fb-form'));
+  const data = {};
+  form.forEach((v,k) => data[k] = v);
+  const rpe = document.querySelector('#scale-rpe .selected');
+  if (rpe) data.rpe = parseInt(rpe.dataset.val);
+  data.athlete_id = token;
+
+  await fetch('/api/feedback', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(data)
+  });
+  location.reload();
+}
+
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Create Session</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+<div class="card">
+<h2>Create Session</h2>
+<form id="session-form">
+<div class="form-group"><label>Date</label><input type="date" id="sdate" required></div>
+<div class="form-group"><label>Session Name</label><input type="text" id="sname" placeholder="e.g. Speed + Lower Body" required></div>
+<div class="form-group"><label>Focus</label><input type="text" id="sfocus" placeholder="Main focus"></div>
+<div class="form-group"><label>⚡ Speed Block</label><textarea id="sspeed" rows="3" placeholder="e.g. 4x20m accelerations"></textarea></div>
+<div class="form-group"><label>🏋️ Strength Block</label><textarea id="sstrength" rows="3" placeholder="e.g. Trap bar deadlift 3x5"></textarea></div>
+<div class="form-group"><label>🛡️ Durability Block</label><textarea id="sdurability" rows="3" placeholder="e.g. Hamstring curls"></textarea></div>
+<button type="submit" class="btn-primary btn-large">Save Session</button>
+</form>
+<div class="back-link"><a href="/coach/dashboard?t=coach2026">&larr; Dashboard</a></div>
+</div>
+</div>
+<script>
+document.getElementById('sdate').valueAsDate = new Date();
+document.getElementById('session-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = {
+    date: document.getElementById('sdate').value,
+    name: document.getElementById('sname').value,
+    focus: document.getElementById('sfocus').value,
+    speed: document.getElementById('sspeed').value,
+    strength: document.getElementById('sstrength').value,
+    durability: document.getElementById('sdurability').value
+  };
+  await fetch('/api/session/create', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+  location.href = '/coach/dashboard?t=coach2026';
+});
+</script>
+</body>
+</html>

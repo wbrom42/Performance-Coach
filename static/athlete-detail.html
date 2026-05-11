@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Athlete Detail</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container" id="app"></div>
+<script>
+const p = new URLSearchParams(location.search);
+const id = p.get('id');
+const t = p.get('t');
+async function load() {
+  const resp = await fetch('/api/athlete/' + id);
+  const d = await resp.json();
+  const al = d.alerts || [];
+  const rd = d.readiness || [];
+  const fb = d.feedback || [];
+  let name = d.athlete ? d.athlete.name : id;
+  let html = `<div class="card"><h2>${name}</h2>`;
+  if (al.length) {
+    html += '<h3>⚠️ Active Alerts</h3>';
+    for (const a of al) {
+      html += `<div class="alert-row"><p><strong>${a.alert_type}</strong> · ${a.date}</p><p>${a.reason}</p></div>`;
+    }
+  }
+  html += '<h3>Readiness (14 Days)</h3>';
+  if (rd.length) {
+    html += '<div class="week-grid">';
+    for (const r of rd) {
+      html += `<div class="day-card ${r.readiness_category.toLowerCase()}"><span class="day">${r.date.slice(5)}</span><span class="day-score">${r.readiness_score}</span></div>`;
+    }
+    html += '</div>';
+  }
+  html += '<h3>Recent Feedback</h3>';
+  for (const f of fb) {
+    html += `<div class="feedback-row"><strong>${f.date}</strong> · ${f.session_name||'Session'}<br>RPE ${f.rpe}`;
+    if (f.best_part) html += `<br>👍 ${f.best_part}`;
+    if (f.hardest_part) html += `<br>💪 ${f.hardest_part}`;
+    if (f.pain_flag) html += `<br>⚠️ Pain: ${f.pain_notes||'reported'}`;
+    html += '</div>';
+  }
+  html += `<div class="btn-row"><a href="/coach/report/${id}?t=${t}" class="btn-secondary">Weekly Report</a><a href="/coach/dashboard?t=${t}" class="btn-secondary">&larr; Dashboard</a></div></div>`;
+  document.getElementById('app').innerHTML = html;
+}
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Check-in</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container" id="app"></div>
+<script>
+const params = new URLSearchParams(location.search);
+const athleteId = params.get('id');
+const token = athleteId === 'A01' ? 'alpha' : (athleteId === 'B02' ? 'bravo' : null);
+
+async function load() {
+  const resp = await fetch('/api/today/' + athleteId);
+  const data = await resp.json();
+  if (data.checked_in) {
+    document.getElementById('app').innerHTML = `
+      <div class="card complete">
+        <div class="big-icon">✅</div>
+        <h2>Already checked in</h2>
+        <div class="category-badge ${data.category.toLowerCase()}">${data.category}</div>
+        <p>Score: <strong>${data.score}</strong></p>
+        <a href="/session?id=${athleteId}" class="btn-primary">View Session</a>
+      </div>`;
+    return;
+  }
+  renderCheckin();
+}
+
+function renderCheckin() {
+  const fields = [
+    {name:'sleep',label:'Sleep',low:'Poor',high:'Great'},
+    {name:'energy',label:'Energy',low:'Low',high:'High'},
+    {name:'soreness',label:'Soreness',low:'None',high:'Very Sore'},
+    {name:'mood',label:'Mood',low:'Off',high:'Great'}
+  ];
+  let html = `<div class="card"><h2>Good morning</h2><form id="checkin-form">`;
+  for (const f of fields) {
+    html += `<div class="rating-group"><label>${f.label}</label><div class="scale" id="scale-${f.name}">`;
+    for (let i=1;i<=5;i++) html += `<button type="button" class="btn-rating" data-val="${i}">${i}</button>`;
+    html += `</div><span class="scale-label"><small>${f.low}</small><small>${f.high}</small></span></div>`;
+  }
+  html += `
+    <div class="rating-group"><label>Body feels</label>
+      <div class="feel-grid">`;
+  for (const v of ['fresh','normal','heavy','beat up']) {
+    html += `<label class="feel-option"><input type="radio" name="body_feel" value="${v}"><span>${v}</span></label>`;
+  }
+  html += `</div></div>
+    <div class="pain-group"><label>Any pain or tightness?</label>
+      <div class="yesno-row">
+        <label class="yesno-option"><input type="radio" name="pain_flag" value="0" checked><span>No</span></label>
+        <label class="yesno-option"><input type="radio" name="pain_flag" value="1"><span>Yes</span></label>
+      </div>
+      <div id="pain-notes" style="display:none"><textarea name="pain_notes" placeholder="Where? What does it feel like?" rows="2"></textarea></div>
+    </div>
+    <button type="submit" class="btn-primary btn-large" id="submit-btn" disabled>Submit</button>
+  </form></div>`;
+  document.getElementById('app').innerHTML = html;
+  setupRatingButtons();
+  document.querySelectorAll('input[name="pain_flag"]').forEach(r => r.addEventListener('change', (e) => {
+    document.getElementById('pain-notes').style.display = e.target.value === '1' ? 'block' : 'none';
+  }));
+  document.getElementById('checkin-form').addEventListener('submit', submitCheckin);
+}
+
+function setupRatingButtons() {
+  const selected = {};
+  document.querySelectorAll('.btn-rating').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const group = btn.closest('.scale');
+      group.querySelectorAll('.btn-rating').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const name = group.id.replace('scale-', '');
+      selected[name] = parseInt(btn.dataset.val);
+      const needed = ['sleep','energy','soreness','mood'];
+      document.getElementById('submit-btn').disabled = !needed.every(n => selected[n]);
+    });
+  });
+}
+
+async function submitCheckin(e) {
+  e.preventDefault();
+  const form = new FormData(document.getElementById('checkin-form'));
+  const data = {};
+  form.forEach((v,k) => data[k] = v);
+  // Get ratings from selected classes
+  document.querySelectorAll('.btn-rating.selected').forEach(btn => {
+    const name = btn.closest('.scale').id.replace('scale-', '');
+    data[name] = btn.dataset.val;
+  });
+  const resp = await fetch('/api/checkin', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({...data, athlete_id: token})
+  });
+  const result = await resp.json();
+  document.getElementById('app').innerHTML = `
+    <div class="card result-card ${result.category.toLowerCase()}">
+      <div class="big-icon">${result.category === 'Red' ? '🔴' : result.category === 'Orange' ? '🟠' : result.category === 'Yellow' ? '🟡' : '🟢'}</div>
+      <h2>${result.category}</h2>
+      <p class="big-score">${result.score}/100</p>
+      <div class="readiness-message">
+        <p>${result.message}</p>
+      </div>
+      <a href="/session?id=${athleteId}" class="btn-primary">View Session</a>
+      <a href="/week?id=${athleteId}" class="btn-secondary">This Week</a>
+    </div>`;
+}
+
+load();
+</script>
+</body>
+</html>

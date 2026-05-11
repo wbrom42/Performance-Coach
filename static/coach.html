@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Coach Dashboard</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container" id="app"></div>
+<script>
+const params = new URLSearchParams(location.search);
+const t = params.get('t') || '';
+if (t !== 'coach2026') {
+  document.getElementById('app').innerHTML = `<div class="card"><h2>Coach Access</h2><form onsubmit="event.preventDefault(); location.href='/coach/dashboard?t='+document.getElementById('ct').value"><input id="ct" type="password" placeholder="Code" style="padding:12px;width:100%;margin-bottom:12px"><button class="btn-primary btn-large">Enter</button></form></div>`;
+} else {
+  loadDashboard();
+}
+
+async function loadDashboard() {
+  const [alerts, session] = await Promise.all([
+    fetch('/api/alerts/open'),
+    fetch('/api/session/today')
+  ]);
+  const aData = await alerts.json();
+  const sData = await session.json();
+
+  let html = `<div class="card"><h2>Coach Dashboard</h2>`;
+  // Alerts banner
+  if (aData.length) {
+    html += `<div class="alert-banner"><a href="/coach/alerts?t=${t}" class="alert-link">⚠️ ${aData.length} open alert(s)</a></div>`;
+  }
+  // Athlete cards
+  for (const [id, name] of [['A01','Tristan'], ['B02','Kennedy']]) {
+    const r = await fetch('/api/today/' + id);
+    const rd = await r.json();
+    const detail = await fetch('/api/athlete/' + id);
+    const dd = await detail.json();
+    html += `<div class="athlete-card"><div class="athlete-header"><strong>${name}</strong><a href="/coach/athlete?t=${t}&id=${id}" class="btn-small">Detail</a></div>`;
+    if (rd.checked_in) {
+      html += `<div class="readiness-display ${rd.category.toLowerCase()}"><span class="big-category">${rd.category}</span><span class="big-score">${rd.score}/100</span></div>`;
+      const latest = dd.readiness && dd.readiness.length ? dd.readiness[dd.readiness.length-1] : null;
+      if (latest) html += `<div class="readiness-detail">Sleep ${latest.sleep_score} · Energy ${latest.energy_score} · Soreness ${latest.soreness_score} · ${latest.body_feel}${latest.pain_flag ? ' · ⚠️ Pain' : ''}</div>`;
+    } else {
+      html += `<p class="pending">No check-in yet</p>`;
+    }
+    html += `</div>`;
+  }
+  // Session
+  html += `<h3>Today's Session</h3>`;
+  if (sData.has_session) {
+    html += `<div class="session-preview"><strong>${sData.name}</strong><p>${sData.focus || ''}</p></div>`;
+  } else {
+    html += `<p class="pending">No session planned</p>`;
+  }
+  html += `<div class="btn-row"><a href="/coach/session-builder?t=${t}" class="btn-primary">Create Session</a><a href="/coach/report/A01?t=${t}" class="btn-secondary">Report: Athlete 1</a><a href="/coach/report/B02?t=${t}" class="btn-secondary">Report: Athlete 2</a></div></div>`;
+  document.getElementById('app').innerHTML = html;
+}
+</script>
+</body>
+</html>
