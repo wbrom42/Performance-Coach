@@ -32,6 +32,20 @@ const RATING_DIMENSIONS = [
 
 const RATING_LABELS = ['Very Low', 'Low', 'Okay', 'Good', 'Great'];
 
+const EXERCISE_SLUGS = {
+  'Tibialis raises': 'tibialis',
+  'KOT calf raises': 'calf',
+  'ATG split squat': 'split-squat',
+  'Couch stretch': 'couch',
+  '20m acceleration': 'sprint',
+  '30m fly-in': 'flyin',
+  'Pro-agility shuttle': 'shuttle',
+  'Front squat': 'front-squat',
+  'Bulgarian split squat': 'bulgarian',
+  'Nordic curl': 'nordic',
+  'Hanging leg raise': 'leg-raise',
+};
+
 const ATHLETES = {
   tristan: {
     id: 'tristan',
@@ -414,4 +428,4 @@ const PROFILE_EXTRAS = {
   },
 };
 
-Object.assign(window, { INGESTION_TIERS, DATA_SOURCES, PROFILE_EXTRAS });
+Object.assign(window, { INGESTION_TIERS, DATA_SOURCES, PROFILE_EXTRAS, EXERCISE_SLUGS });

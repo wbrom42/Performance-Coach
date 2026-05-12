@@ -38,14 +38,14 @@
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-  <script src="api.js"></script>
-  <script type="text/babel" src="ios-frame.jsx"></script>
-  <script type="text/babel" src="tweaks-panel.jsx"></script>
-  <script type="text/babel" src="data.jsx"></script>
-  <script type="text/babel" src="screens.jsx"></script>
-  <script type="text/babel" src="tests.jsx"></script>
-  <script type="text/babel" src="profile.jsx"></script>
-  <script type="text/babel" src="flags.jsx"></script>
+  <script src="/static/api.js"></script>
+  <script type="text/babel" src="/static/ios-frame.jsx"></script>
+  <script type="text/babel" src="/static/tweaks-panel.jsx"></script>
+  <script type="text/babel" src="/static/data.jsx"></script>
+  <script type="text/babel" src="/static/screens.jsx"></script>
+  <script type="text/babel" src="/static/tests.jsx"></script>
+  <script type="text/babel" src="/static/profile.jsx"></script>
+  <script type="text/babel" src="/static/flags.jsx"></script>
   <!-- The original app.jsx mounts to #device-mount inside a desktop preview
        shell; for the production index we mount the same App to #app full-bleed. -->
   <script type="text/babel">
@@ -53,6 +53,6 @@
     const appEl = document.getElementById('app');
     appEl.id = 'device-mount';
   </script>
-  <script type="text/babel" src="app.jsx"></script>
+  <script type="text/babel" src="/static/app.jsx"></script>
 </body>
 </html>

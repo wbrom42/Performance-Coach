@@ -108,3 +108,46 @@ class Flag(SQLModel, table=True):
     summary: str
     rec: str
     signals: str = Field(default="[]", sa_column=Column(JSON))  # list[dict]
+
+
+# ── Pain Reports ──
+class PainReport(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    athlete_id: str = Field(foreign_key="athlete.id", index=True)
+    date: date
+    location: str
+    side: Optional[str] = None  # left | right | bilateral | midline
+    severity: int = Field(ge=1, le=10)
+    pain_type: str = "tight"  # tight | sore | sharp | dull | throbbing | other
+    affects_running: bool = False
+    affects_cutting: bool = False
+    trend: str = "new"  # new | same | better | worse
+    notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+# ── Weekly Adjustment Packets ──
+class WeeklyAdjustmentPacket(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    athlete_id: str = Field(foreign_key="athlete.id", index=True)
+    week_start: date
+    week_end: date
+    overall_status: str   # progressing | holding | needs_attention | deload_recommended
+    risk_level: str       # low | medium | high
+    headline: str
+    key_wins: str = Field(default="[]", sa_column=Column(JSON))
+    concerns: str = Field(default="[]", sa_column=Column(JSON))
+    training_adjustments: str = Field(default="[]", sa_column=Column(JSON))
+    athlete_message: str = ""
+    coach_notes: str = ""
+    parent_summary: Optional[str] = None
+    next_week_focus: str = Field(default="[]", sa_column=Column(JSON))
+    plan_change_explanation: Optional[str] = None
+    do_not_do: str = Field(default="[]", sa_column=Column(JSON))
+    confidence: str = "medium"  # low | medium | high
+    raw_input: Optional[str] = Field(default=None, sa_column=Column(JSON))
+    raw_output: Optional[str] = Field(default=None, sa_column=Column(JSON))
+    coach_status: str = Field(default="pending")  # pending | approved | edited | ignored
+    coach_reviewed_at: Optional[datetime] = None
+    coach_edits: Optional[str] = Field(default=None, sa_column=Column(JSON))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

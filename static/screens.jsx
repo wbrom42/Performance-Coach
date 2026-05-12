@@ -565,19 +565,34 @@ function SessionScreen({ theme, accent }) {
                 padding: '0 16px 14px', borderTop: `1px solid ${theme.subtleBorder}`,
                 paddingTop: 12
               }}>
-                  {b.exercises.map((ex, j) =>
+                  {b.exercises.map((ex, j) => {
+                const slug = EXERCISE_SLUGS[ex.name] || null;
+                return (
                 <div key={j} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '8px 0',
                   borderBottom: j < b.exercises.length - 1 ? `1px solid ${theme.subtleBorder}` : 'none'
                 }}>
-                      <div style={{ fontSize: 14, color: theme.text }}>{ex.name}</div>
-                      <div style={{
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontSize: 14, color: theme.text }}>{ex.name}</div>
+                    {slug &&
+                    <a href={`/static/exercise-demo.html?ex=${slug}`}
+                      style={{
+                        fontSize: 11, color: accent, textDecoration: 'none',
+                        background: `${accent}1a`, padding: '2px 8px', borderRadius: 6,
+                        fontWeight: 500, whiteSpace: 'nowrap',
+                        fontFamily: 'JetBrains Mono, monospace',
+                        letterSpacing: '0.04em'
+                      }}
+                    >▶ Watch</a>
+                    }
+                  </div>
+                  <div style={{
                     fontFamily: 'JetBrains Mono, monospace',
                     fontSize: 12, color: theme.secondary
                   }}>{ex.detail}</div>
-                    </div>
-                )}
+                </div>);
+                }
                 </div>
               }
             </div>);

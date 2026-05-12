@@ -1,7 +1,8 @@
 """Session plan endpoints."""
 
 from datetime import date
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 from database import get_session
 from models import Session, Block, Exercise
@@ -34,10 +35,13 @@ def _session_to_out(s: Session) -> SessionOut:
 
 
 @router.get("/today", response_model=SessionOut)
-def get_today(session: Session = Depends(get_session)):
-    today = date.today()
+def get_today(
+    session: Session = Depends(get_session),
+    dt: Optional[str] = Query(None, alias="date", description="Date in YYYY-MM-DD format. Defaults to today."),
+):
+    target = date.fromisoformat(dt) if dt else date.today()
     s = session.exec(
-        select(Session).where(Session.date == today)
+        select(Session).where(Session.date == target)
     ).first()
     if not s:
         raise HTTPException(404, detail="No session planned for today")

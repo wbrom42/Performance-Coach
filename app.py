@@ -4,10 +4,14 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
+import mimetypes
+
+# Register .jsx → application/javascript so Babel standalone can load it
+mimetypes.add_type('application/javascript', '.jsx')
 
 from database import init_db
-from routers import athletes, checkins, sessions, tests, load, flags, ingest
+from routers import athletes, checkins, sessions, tests, load, flags, ingest, openclaw
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -34,6 +38,7 @@ app.include_router(tests.router)
 app.include_router(load.router)
 app.include_router(flags.router)
 app.include_router(ingest.router)
+app.include_router(openclaw.router)
 
 # Static frontend
 static_dir = BASE_DIR / "static"
