@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0b10">
+<title>Log Workout</title>
+<style>
+  :root {
+    --bg: #0a0b10;
+    --card: #16192a;
+    --card-hover: #1e2238;
+    --text: #e8eaf0;
+    --text-dim: #6a6f85;
+    --accent: #4f8fff;
+    --green: #34d399;
+    --yellow: #fbbf24;
+    --orange: #fb923c;
+    --red: #f87171;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100dvh;
+  }
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px;
+    padding-bottom: 96px;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0 16px;
+  }
+  .header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  .header .close {
+    color: var(--text-dim);
+    font-size: 1.5rem;
+    text-decoration: none;
+    padding: 4px 8px;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  /* ── Form elements ── */
+  .form-group { margin-bottom: 20px; }
+  .form-group:last-child { margin-bottom: 0; }
+  .form-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  select, input[type="date"], input[type="number"], textarea {
+    width: 100%;
+    background: #1a1d2e;
+    border: 1px solid #262a3d;
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 1rem;
+    font-family: var(--font);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  select:focus, input:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  /* ── Athlete chips ── */
+  .athlete-chips {
+    display: flex;
+    gap: 12px;
+  }
+  .athlete-chip {
+    flex: 1;
+    padding: 14px;
+    text-align: center;
+    border-radius: var(--radius-sm);
+    border: 2px solid #262a3d;
+    background: #1a1d2e;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .athlete-chip.selected {
+    border-color: var(--accent);
+    background: oklch(0.25 0.06 260 / 0.4);
+  }
+  .athlete-chip .initials {
+    display: block;
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+  }
+  .athlete-chip .name {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  /* ── Session type grid ── */
+  .type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .type-btn {
+    padding: 12px 8px;
+    text-align: center;
+    border-radius: var(--radius-sm);
+    border: 2px solid #262a3d;
+    background: #1a1d2e;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .type-btn.selected {
+    border-color: var(--accent);
+    background: oklch(0.25 0.06 260 / 0.4);
+  }
+  .type-btn .emoji {
+    display: block;
+    font-size: 1.3rem;
+    margin-bottom: 4px;
+  }
+
+  /* ── RPE Slider ── */
+  .rpe-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border: none;
+    border-radius: 3px;
+    background: linear-gradient(to right, var(--green), var(--yellow), var(--orange), var(--red));
+    outline: none;
+    padding: 0;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 3px solid var(--accent);
+    cursor: pointer;
+  }
+  .rpe-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    min-width: 40px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── Submit ── */
+  .btn-submit {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-submit:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+  .btn-submit:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--green);
+    color: #000;
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 0.9rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── Duration + RPE in one row ── */
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Log Workout</h1>
+    <a href="/" class="close">✕</a>
+  </div>
+
+  <form id="log-form">
+    <!-- Athlete -->
+    <div class="card">
+      <div class="form-label">Who trained?</div>
+      <div class="athlete-chips">
+        <div class="athlete-chip" data-athlete="tristan" onclick="selectAthlete(this)">
+          <span class="initials">T</span>
+          <span class="name">Tristan</span>
+        </div>
+        <div class="athlete-chip" data-athlete="kennedy" onclick="selectAthlete(this)">
+          <span class="initials">K</span>
+          <span class="name">Kennedy</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date -->
+    <div class="card">
+      <div class="form-group">
+        <div class="form-label">Date</div>
+        <input type="date" id="log-date">
+      </div>
+    </div>
+
+    <!-- Session Type -->
+    <div class="card">
+      <div class="form-label">Session type</div>
+      <div class="type-grid">
+        <div class="type-btn" data-type="speed" onclick="selectType(this)">
+          <span class="emoji">⚡</span>Speed
+        </div>
+        <div class="type-btn" data-type="strength" onclick="selectType(this)">
+          <span class="emoji">🏋️</span>Strength
+        </div>
+        <div class="type-btn" data-type="mixed" onclick="selectType(this)">
+          <span class="emoji">🔄</span>Mixed
+        </div>
+        <div class="type-btn" data-type="game" onclick="selectType(this)">
+          <span class="emoji">⚽</span>Game
+        </div>
+        <div class="type-btn" data-type="recovery" onclick="selectType(this)">
+          <span class="emoji">🧘</span>Recovery
+        </div>
+        <div class="type-btn" data-type="other" onclick="selectType(this)">
+          <span class="emoji">📋</span>Other
+        </div>
+      </div>
+    </div>
+
+    <!-- Duration + RPE -->
+    <div class="card">
+      <div class="row-2">
+        <div class="form-group">
+          <div class="form-label">Duration (min)</div>
+          <input type="number" id="duration" min="1" max="300" value="60" step="5">
+        </div>
+        <div class="form-group">
+          <div class="form-label">RPE (1-10)</div>
+          <div class="rpe-row">
+            <input type="range" id="rpe" min="1" max="10" value="5" oninput="updateRpe(this.value)">
+            <span class="rpe-value" id="rpe-display">5</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="card">
+      <div class="form-group">
+        <div class="form-label">Notes</div>
+        <textarea id="notes" placeholder="What did you do? Any highlights, struggles, or things to note?"></textarea>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit" id="submit-btn">Log Workout</button>
+  </form>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Set default date ──
+document.getElementById('log-date').valueAsDate = new Date();
+
+// ── Athlete selection ──
+let selectedAthlete = null;
+function selectAthlete(el) {
+  document.querySelectorAll('.athlete-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedAthlete = el.dataset.athlete;
+}
+
+// ── Type selection ──
+let selectedType = null;
+function selectType(el) {
+  document.querySelectorAll('.type-btn').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedType = el.dataset.type;
+}
+
+// ── RPE display ──
+function updateRpe(v) {
+  document.getElementById('rpe-display').textContent = v;
+}
+
+// ── Submit ──
+document.getElementById('log-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  if (!selectedAthlete) { showToast('Pick who trained', '#f87171'); btn.disabled = false; btn.textContent = 'Log Workout'; return; }
+  if (!selectedType) { showToast('Pick a session type', '#f87171'); btn.disabled = false; btn.textContent = 'Log Workout'; return; }
+
+  const body = {
+    athlete_id: selectedAthlete,
+    date: document.getElementById('log-date').value,
+    session_type: selectedType,
+    duration_min: parseInt(document.getElementById('duration').value) || 60,
+    rpe: parseInt(document.getElementById('rpe').value) || 5,
+    notes: document.getElementById('notes').value || null,
+  };
+
+  try {
+    const res = await fetch('/api/v1/log/workout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Save failed');
+    }
+    showToast('✅ Workout logged!', '#34d399');
+    document.getElementById('log-form').reset();
+    document.getElementById('log-date').valueAsDate = new Date();
+    document.getElementById('rpe').value = 5;
+    document.getElementById('rpe-display').textContent = '5';
+    selectedAthlete = null;
+    selectedType = null;
+    document.querySelectorAll('.athlete-chip, .type-btn').forEach(c => c.classList.remove('selected'));
+  } catch (err) {
+    showToast('❌ ' + err.message, '#f87171');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Log Workout';
+  }
+});
+
+function showToast(msg, color) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = color;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

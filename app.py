@@ -11,7 +11,7 @@ import mimetypes
 mimetypes.add_type('application/javascript', '.jsx')
 
 from database import init_db
-from routers import athletes, checkins, sessions, tests, load, flags, ingest, openclaw
+from routers import athletes, checkins, sessions, tests, load, flags, ingest, openclaw, workout_log
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -39,6 +39,7 @@ app.include_router(load.router)
 app.include_router(flags.router)
 app.include_router(ingest.router)
 app.include_router(openclaw.router)
+app.include_router(workout_log.router)
 
 # Static frontend
 static_dir = BASE_DIR / "static"
@@ -53,6 +54,15 @@ def landing():
     if index.exists():
         return FileResponse(str(index))
     return {"status": "API running", "docs": "/docs"}
+
+
+@app.get("/log")
+def log_workout_page():
+    """Serve the manual workout log form."""
+    log_page = static_dir / "log-workout.html"
+    if log_page.exists():
+        return FileResponse(str(log_page))
+    return {"error": "Log page not found"}, 404
 
 
 @app.on_event("startup")

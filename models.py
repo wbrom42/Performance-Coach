@@ -126,6 +126,18 @@ class PainReport(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
+# ── Workout Log (manual entry) ──
+class WorkoutLog(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    athlete_id: str = Field(foreign_key="athlete.id", index=True)
+    date: date
+    session_type: str  # speed | strength | mixed | game | recovery | other
+    duration_min: int = Field(ge=0, le=300)
+    rpe: int = Field(ge=1, le=10)  # 1-10 Rating of Perceived Exertion
+    notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
 # ── Weekly Adjustment Packets ──
 class WeeklyAdjustmentPacket(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
